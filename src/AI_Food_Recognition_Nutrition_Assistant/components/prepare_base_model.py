@@ -38,7 +38,7 @@ class PrepareBaseModel:
 
         full_model.compile(
             optimizer=tensorflow.keras.optimizers.SGD(learning_rate = learning_rate),
-            loss=tensorflow.keras.losses.CategoricalCrossentropy(),
+            loss=tensorflow.keras.losses.SparseCategoricalCrossentropy(),
             metrics=["accuracy"],
         )
 
