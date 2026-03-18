@@ -26,3 +26,18 @@ class PrepareCallbackConfig:
     callback_list: list
     tensorboard_root_log_dir: Path
     checkpoint_model_filepath: Path
+
+@dataclass(frozen=True)
+class TrainingConfig:
+    root_dir: Path
+    trained_model_path: Path
+    updated_base_model_path: Path
+    training_data: Path
+    params_epochs: int
+    params_batch_size: int
+    params_in_augmentation: bool
+    params_image_size: list
+    params_learning_rate: float
+    params_classes: int
+    params_weights: str
+    params_include_top: bool
