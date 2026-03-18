@@ -17,5 +17,4 @@ types-PyYAML
 python-box
 Flask
 Flask-Cors
-logging
 -e .
