@@ -1,8 +1,38 @@
-AUGMENTATION: True
-IMAGE_SIZE: [224,224,3] # as per VGG 16
-BATCH_SIZE: 16
-INCLUDE_TOP: False
-EPOCHS: 30
-CLASSES: 101
-WEIGHTS: imagenet
-LEARNING_RATE: 0.01
+training:
+  num_classes: 101
+  batch_size: 32
+  num_workers: 4
+  epochs: 60
+  seed: 42
+
+  lr_backbone: 3.0e-5
+  lr_head: 5.0e-4
+  weight_decay: 1.0e-4
+
+  max_lr: 5.0e-4
+  pct_start: 0.1
+  div_factor: 25
+  final_div_factor: 10000
+
+  label_smoothing: 0.1
+  patience: 8
+
+augmentation:
+  use_mixup: true
+  use_cutmix: true
+  mixup_alpha: 0.2
+  cutmix_alpha: 1.0
+  mixup_cutmix_prob: 0.5
+  randaugment_num_ops: 2
+  randaugment_magnitude: 9
+  random_erasing_p: 0.25
+
+ema:
+  use_ema: true
+  ema_decay: 0.999
+
+model:
+  architecture: convnext_tiny
+  pretrained_weights: IMAGENET1K_V1
+  input_size: 224
+  resize_size: 256
