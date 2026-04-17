@@ -25,6 +25,27 @@ class ConfigurationManager:
 
         return data_ingestion_config
     
+    def get_data_preprocessing_config(self) -> DataPreprocessingConfig:
+        config = self.config.data_preprocessing
+        p = self.params
+        create_directories([config.root_dir])
+        data_preprocessing_config = DataPreprocessingConfig(
+            root_dir=Path(config.root_dir),
+            unzip_dir=Path(config.unzip_dir),
+            train_dir=Path(config.train_dir),
+            test_dir=Path(config.test_dir),
+            input_size=p.model.input_size,
+            resize_size=p.model.resize_size,
+            seed = p.training.seed,
+            randaugment_num_ops=p.augmentation.randaugment_num_ops,
+            randaugment_magnitude=p.augmentation.randaugment_magnitude,
+            random_erasing_p=p.augmentation.random_erasing_p,
+            batch_size= p.training.batch_size,
+            num_workers=p.training.num_workers,
+        )
+
+        return data_preprocessing_config
+    
     def get_prepare_base_model_config(self) -> PrepareBaseModelConfig:
         config = self.config.prepare_base_model
 

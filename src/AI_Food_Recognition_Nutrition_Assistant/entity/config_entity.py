@@ -10,6 +10,21 @@ class DataIngestionConfig:
     unzip_dir: Path
 
 @dataclass(frozen=True)
+class DataPreprocessingConfig:
+    root_dir: Path
+    unzip_dir: Path
+    train_dir: Path
+    test_dir: Path
+    input_size: int
+    resize_size: int
+    randaugment_num_ops: int
+    randaugment_magnitude: int
+    random_erasing_p: float
+    seed: int
+    batch_size: int
+    num_workers: int
+
+@dataclass(frozen=True)
 class PrepareBaseModelConfig:
     root_dir: Path
     base_model_path: Path
