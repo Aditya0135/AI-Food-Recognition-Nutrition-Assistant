@@ -1,13 +1,25 @@
 from AI_Food_Recognition_Nutrition_Assistant import logger
 from AI_Food_Recognition_Nutrition_Assistant.pipeline.stage_01_data_ingestion import DataIngestionPipeline
-from AI_Food_Recognition_Nutrition_Assistant.pipeline.stage_02_prepare_base_model import PrepareBaseModelPipeline
-from AI_Food_Recognition_Nutrition_Assistant.pipeline.stage_03_prepare_callback import PrepareCallbackPipeline
+from AI_Food_Recognition_Nutrition_Assistant.pipeline.stage_02_data_preprocessing import DataPreprocessingPipeline
+from AI_Food_Recognition_Nutrition_Assistant.pipeline.stage_03_prepare_base_model import PrepareBaseModelPipeline
 
-STAGE_NAME = "Data Ingestion Stage"
+
+# STAGE_NAME = "Data Ingestion Stage"
+
+# try:
+#     logger.info(f">>>> stage {STAGE_NAME} started <<<<")
+#     data_ingestion = DataIngestionPipeline()
+#     data_ingestion.main()
+#     logger.info(f">>>> stage {STAGE_NAME} completed <<<< \n\nx============x")
+# except Exception as e:
+#     logger.exception(e)
+#     raise e
+
+STAGE_NAME = "Data Preprocessing Stage"
 
 try:
     logger.info(f">>>> stage {STAGE_NAME} started <<<<")
-    data_ingestion = DataIngestionPipeline()
+    data_ingestion = DataPreprocessingPipeline()
     data_ingestion.main()
     logger.info(f">>>> stage {STAGE_NAME} completed <<<< \n\nx============x")
 except Exception as e:
@@ -25,13 +37,13 @@ except Exception as e:
     logger.exception(e)
     raise e
 
-STAGE_NAME = "Prepare Callback Stage"
+# STAGE_NAME = "Prepare Callback Stage"
 
-try:
-    logger.info(f">>>> stage {STAGE_NAME} started <<<<")
-    prepare_callback = PrepareCallbackPipeline()
-    prepare_callback.main()
-    logger.info(f">>>> stage {STAGE_NAME} completed <<<< \n\nx============x")
-except Exception as e:
-    logger.exception(e)
-    raise e
+# try:
+#     logger.info(f">>>> stage {STAGE_NAME} started <<<<")
+#     prepare_callback = PrepareCallbackPipeline()
+#     prepare_callback.main()
+#     logger.info(f">>>> stage {STAGE_NAME} completed <<<< \n\nx============x")
+# except Exception as e:
+#     logger.exception(e)
+#     raise e

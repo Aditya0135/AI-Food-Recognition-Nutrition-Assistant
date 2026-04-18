@@ -1,63 +1,30 @@
-import tensorflow
+import torch.nn as nn
+import torch
+from torchvision import models
+from AI_Food_Recognition_Nutrition_Assistant import logger
 from AI_Food_Recognition_Nutrition_Assistant.config.configuration import PrepareBaseModelConfig
-from pathlib import Path
+from AI_Food_Recognition_Nutrition_Assistant.utils.common import create_directories
+
 
 class PrepareBaseModel:
-    
     def __init__(self, config: PrepareBaseModelConfig):
         self.config = config
 
+    def get_base_model(self) -> nn.Module:
+        logger.info(f"Loading {self.config.architecture} with weights={self.config.pretrained_weights}")
+        model = models.convnext_tiny(weights=self.config.pretrained_weights)
+        create_directories([self.config.root_dir])
+        torch.save(model.state_dict(),self.config.base_model_path) 
+        return model
 
-    def get_base_model(self):
-        self.model = tensorflow.keras.applications.VGG16(
-            include_top=self.config.params_include_top,
-            weights=self.config.params_weights,
-            input_shape=self.config.params_image_size,
-        )
-        self.save_model(path = self.config.base_model_path, model = self.model) 
+    def update_model_head(self, model: nn.Module) -> nn.Module:
+        in_features = model.classifier[2].in_features # type: ignore[index]
+        model.classifier[2] = nn.Linear(in_features, self.config.num_classes) # type: ignore[index]
+        logger.info(f"Updated classifier head: {in_features} -> {self.config.num_classes} classes")
+        torch.save(model.state_dict(), self.config.updated_base_model_path)
+        return model
 
-    @staticmethod
-    def _prepare_full_model(model,classes,freeze_all,freeze_till,learning_rate):
-        if freeze_all:
-            for layer in model.layers:
-                layer.trainable = False
-        elif (freeze_till is not None) and (freeze_till > 0):
-            for layer in model.layers[:-freeze_till]:
-                layer.trainable = False
-
-        flatten_in = tensorflow.keras.layers.Flatten()(model.output)
-        predication = tensorflow.keras.layers.Dense(
-            units=classes,
-            activation='softmax'
-        )(flatten_in)
-        
-        full_model = tensorflow.keras.models.Model(
-            inputs=model.input,
-            outputs=predication
-        )
-
-        full_model.compile(
-            optimizer=tensorflow.keras.optimizers.SGD(learning_rate = learning_rate),
-            loss=tensorflow.keras.losses.SparseCategoricalCrossentropy(),
-            metrics=["accuracy"],
-        )
-
-        full_model.summary()
-        return full_model
-    
-
-    def update_base_model(self):
-        self.full_model = self._prepare_full_model(
-            model=self.model,
-            classes=self.config.params_classes,
-            freeze_all=True,
-            freeze_till=None,
-            learning_rate=self.config.params_learning_rate
-        )
-
-        self.save_model(path = self.config.updated_base_model_path, model = self.full_model)
-
-    
-    @staticmethod
-    def save_model(path: Path, model: tensorflow.keras.Model):
-        model.save(path)
+    def prepare(self) -> nn.Module:
+        model = self.get_base_model()
+        model = self.update_model_head(model)
+        return model
