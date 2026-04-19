@@ -15,6 +15,7 @@ class DataPreprocessingConfig:
     unzip_dir: Path
     train_dir: Path
     test_dir: Path
+    splits_dir: Path
     input_size: int
     resize_size: int
     randaugment_num_ops: int
@@ -44,13 +45,29 @@ class PrepareCallbackConfig:
 class TrainingConfig:
     root_dir: Path
     trained_model_path: Path
-    updated_base_model_path: Path
-    training_data: Path
-    params_epochs: int
-    params_batch_size: int
-    params_in_augmentation: bool
-    params_image_size: list
-    params_learning_rate: float
-    params_classes: int
-    params_weights: str
-    params_include_top: bool
+    checkpoint_dir: Path
+    base_model_path: Path    
+    # hyperparams
+    num_classes: int
+    batch_size: int
+    num_workers: int
+    epochs: int
+    seed: int
+    lr_backbone: float
+    lr_head: float
+    weight_decay: float
+    max_lr: float
+    pct_start: float
+    div_factor: float
+    final_div_factor: float
+    label_smoothing: float
+    patience: int
+    # augmentation
+    use_mixup: bool
+    use_cutmix: bool
+    mixup_alpha: float
+    cutmix_alpha: float
+    mixup_cutmix_prob: float
+    # ema
+    use_ema: bool
+    ema_decay: float

@@ -16,6 +16,7 @@ data_preprocessing:
   unzip_dir: artifacts/data_ingestion/food-101/food-101/images
   train_dir: artifacts/data_preprocessing/train
   test_dir: artifacts/data_preprocessing/test
+  splits_dir: artifacts/data_preprocessing/splits.pth
 
 prepare_base_model:
   root_dir: artifacts/prepare_base_model
@@ -27,7 +28,6 @@ training:
   root_dir: artifacts/training
   trained_model_path: artifacts/training/model.pth
   checkpoint_dir: artifacts/training/checkpoints
-  updated_model_path: artifacts/training/updated_model.pth
 
 project:
   name: 

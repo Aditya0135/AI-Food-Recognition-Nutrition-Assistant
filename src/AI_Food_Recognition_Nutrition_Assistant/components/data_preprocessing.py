@@ -31,7 +31,7 @@ class DataPreprocessing:
             ),
         ])
  
-    def get_test_transform(self) -> transforms.Compose:
+    def get_val_test_transform(self) -> transforms.Compose:
         return transforms.Compose([
             transforms.Resize(self.config.resize_size),
             transforms.CenterCrop(self.config.input_size),
@@ -42,35 +42,70 @@ class DataPreprocessing:
  
     def load_and_split(self):
         train_transform = self.get_train_transform()
-        test_transform = self.get_test_transform()
+        val_test_transform = self.get_val_test_transform()
 
-        dataset = datasets.ImageFolder(root=self.config.unzip_dir)
+        base_dataset = datasets.ImageFolder(root=self.config.unzip_dir)
 
-        logger.info(f"Classes found: {dataset.classes}")
-        logger.info(f"Total images: {len(dataset)}")
+        logger.info(f"Classes found: {len(base_dataset.classes)}")
+        logger.info(f"Total images: {len(base_dataset)}")
 
         # define size
-        train_size = int(0.8 * len(dataset))
-        test_size = len(dataset) - train_size
+        train_size = int(0.8 * len(base_dataset))
+        val_size = int(0.1 * len(base_dataset))
+        test_size = len(base_dataset) - train_size - val_size
         
         # get seed and train-test split
         seed_num = torch.Generator().manual_seed(self.config.seed)
-        train_data, test_data = random_split(dataset,lengths=[train_size,test_size],generator=seed_num)
+        train_split, val_split, test_split = random_split(
+            base_dataset,
+            lengths=[train_size,val_size,test_size],
+            generator=seed_num
+        )
+        torch.save(
+            {
+            "train_indices": train_split.indices,
+            "val_indices": val_split.indices,
+            "test_indices": test_split.indices,
+            },
+            self.config.splits_dir
+        )
+        # create separate datasets so each split can have its own transform
+        train_dataset = datasets.ImageFolder(
+            root=self.config.unzip_dir,
+            transform=train_transform
+        )
+        val_dataset = datasets.ImageFolder(
+            root=self.config.unzip_dir,
+            transform=val_test_transform
+        )
+        test_dataset = datasets.ImageFolder(
+            root=self.config.unzip_dir,
+            transform=val_test_transform
+        )
 
-        # transform and augment
-        train_data.dataset.transform = train_transform # type: ignore[attr-defined]
-        test_data.dataset.transform = test_transform # type: ignore[attr-defined]
+        # reuse indices from the split
+        train_data = torch.utils.data.Subset(train_dataset, train_split.indices)
+        val_data = torch.utils.data.Subset(val_dataset, val_split.indices)
+        test_data = torch.utils.data.Subset(test_dataset, test_split.indices)
 
         # Define train and test loaders
         train_loader = DataLoader(
             train_data, batch_size=self.config.batch_size,
             shuffle=True, num_workers=self.config.num_workers,
-            pin_memory=True, prefetch_factor=4,
+            pin_memory=True, prefetch_factor=4 if self.config.num_workers > 0 else None,
+            persistent_workers=True if self.config.num_workers > 0 else False,
+        )
+        val_loader = DataLoader(
+            val_data, batch_size=self.config.batch_size,
+            shuffle=False, num_workers=self.config.num_workers,
+            pin_memory=True, prefetch_factor=4 if self.config.num_workers > 0 else None,
+            persistent_workers=True if self.config.num_workers > 0 else False,
         )
         test_loader = DataLoader(
             test_data, batch_size=self.config.batch_size,
             shuffle=False, num_workers=self.config.num_workers,
-            pin_memory=True, prefetch_factor=4
+            pin_memory=True, prefetch_factor=4 if self.config.num_workers > 0 else None,
+            persistent_workers=True if self.config.num_workers > 0 else False,
         )
-        logger.info(f"DataLoaders ready. Train: {train_size}, Test: {test_size}")
-        return train_loader, test_loader
+        logger.info(f"DataLoaders ready. Train: {train_size}, Validation: {val_size}, Test: {test_size}")
+        return train_loader,val_loader,test_loader

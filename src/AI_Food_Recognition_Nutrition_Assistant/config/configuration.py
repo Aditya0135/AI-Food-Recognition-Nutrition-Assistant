@@ -1,5 +1,5 @@
 from AI_Food_Recognition_Nutrition_Assistant.constants import *
-from AI_Food_Recognition_Nutrition_Assistant.utils.common import read_yaml,create_directories,decodeImage
+from AI_Food_Recognition_Nutrition_Assistant.utils.common import read_yaml,create_directories
 from AI_Food_Recognition_Nutrition_Assistant.entity.config_entity import *
 
 class ConfigurationManager:
@@ -34,6 +34,7 @@ class ConfigurationManager:
             unzip_dir=Path(config.unzip_dir),
             train_dir=Path(config.train_dir),
             test_dir=Path(config.test_dir),
+            splits_dir=Path(config.splits_dir),
             input_size=p.model.input_size,
             resize_size=p.model.resize_size,
             seed = p.training.seed,
@@ -61,47 +62,37 @@ class ConfigurationManager:
 
         return prepare_base_model_config
     
-    def get_prepare_callback_config(self) -> PrepareCallbackConfig:
-        config = self.config.prepare_callbacks
-        model_ckpt_dir = os.path.dirname(config.checkpoint_model_filepath)
-        create_directories([
-            Path(model_ckpt_dir),
-            Path(config.tensorboard_root_log_dir)
-        ])
-
-        prepare_callback_config = PrepareCallbackConfig(
-            root_dir = Path(config.root_dir),
-            tensorboard_root_log_dir = Path(config.tensorboard_root_log_dir),
-            checkpoint_model_filepath = Path(config.checkpoint_model_filepath),
-            callback_list = config.callback_list,
-        )
-
-        return prepare_callback_config          
-
-
     def get_training_config(self) -> TrainingConfig:
         config = self.config.training
-        params = self.params
-        prepare_base_model=self.config.prepare_base_model
-        training_data = os.path.join(self.config.data_ingestion.unzip_dir,"food-101","food-101","images")
-
-        create_directories([
-            Path(config.root_dir)
-        ])
-
-        training_config = TrainingConfig(
-            root_dir = Path(config.root_dir),
-            trained_model_path = Path(config.trained_model_path),
-            updated_base_model_path=Path(prepare_base_model.updated_base_model_path),
-            training_data=Path(training_data),
-            params_in_augmentation=params.AUGMENTATION,
-            params_image_size=params.IMAGE_SIZE,
-            params_batch_size=params.BATCH_SIZE,
-            params_epochs=params.EPOCHS,
-            params_classes= params.CLASSES,
-            params_include_top=params.INCLUDE_TOP,
-            params_learning_rate=params.LEARNING_RATE,
-            params_weights=params.WEIGHTS
+        p = self.params
+        create_directories([config.root_dir])
+        create_directories([config.checkpoint_dir])
+        train_config = TrainingConfig(
+            root_dir=Path(config.root_dir),
+            trained_model_path=Path(config.trained_model_path),
+            checkpoint_dir=Path(config.checkpoint_dir),
+            base_model_path=Path(self.config.prepare_base_model.updated_base_model_path),
+            num_classes=p.training.num_classes,
+            batch_size=p.training.batch_size,
+            num_workers=p.training.num_workers,
+            epochs=p.training.epochs,
+            seed=p.training.seed,
+            lr_backbone=p.training.lr_backbone,
+            lr_head=p.training.lr_head,
+            weight_decay=p.training.weight_decay,
+            max_lr=p.training.max_lr,
+            pct_start=p.training.pct_start,
+            div_factor=p.training.div_factor,
+            final_div_factor=p.training.final_div_factor,
+            label_smoothing=p.training.label_smoothing,
+            patience=p.training.patience,
+            use_mixup=p.augmentation.use_mixup,
+            use_cutmix=p.augmentation.use_cutmix,
+            mixup_alpha=p.augmentation.mixup_alpha,
+            cutmix_alpha=p.augmentation.cutmix_alpha,
+            mixup_cutmix_prob=p.augmentation.mixup_cutmix_prob,
+            use_ema=p.ema.use_ema,
+            ema_decay=p.ema.ema_decay,
         )
-            
-        return training_config      
+
+        return train_config     

@@ -13,8 +13,11 @@ class PrepareBaseModelPipeline:
         prepare_base_model_config = config.get_prepare_base_model_config()
         preparer = PrepareBaseModel(prepare_base_model_config)
         model = preparer.prepare()
-
-if __name__ == "main":
+        self.model = model
+        return model
+    def get_base_model(self):
+        return self.model
+if __name__ == "__main__":
     try:
         logger.info(f">>>> stage {STAGE_NAME} started <<<<")
         obj = PrepareBaseModelPipeline()

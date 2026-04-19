@@ -12,9 +12,10 @@ class DataPreprocessingPipeline:
         config = ConfigurationManager()
         preprocessing_config = config.get_data_preprocessing_config()
         preprocessing = DataPreprocessing(config=preprocessing_config)
-        train_loader, test_loader = preprocessing.load_and_split()
+        train_loader,val_loader,test_loader = preprocessing.load_and_split()
+        return train_loader, val_loader, test_loader
 
-if __name__ == "main":
+if __name__ == "__main__":
     try:
         logger.info(f">>>> stage {STAGE_NAME} started <<<<")
         obj = DataPreprocessingPipeline()
