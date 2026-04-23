@@ -35,6 +35,7 @@ class ConfigurationManager:
             train_dir=Path(config.train_dir),
             test_dir=Path(config.test_dir),
             splits_dir=Path(config.splits_dir),
+            class_names_path=Path(config.class_names_path),
             input_size=p.model.input_size,
             resize_size=p.model.resize_size,
             seed = p.training.seed,
@@ -95,4 +96,31 @@ class ConfigurationManager:
             ema_decay=p.ema.ema_decay,
         )
 
-        return train_config     
+        return train_config
+
+    def get_evaluation_config(self) -> EvaluationConfig:
+        config = self.config.evaluation
+        p = self.params
+        create_directories([config.root_dir])
+        return EvaluationConfig(
+            root_dir=Path(config.root_dir),
+            trained_model_path=Path(self.config.training.trained_model_path),
+            metrics_path=Path(config.metrics_path),
+            report_path=Path(config.report_path),
+            confusion_matrix_path=Path(config.confusion_matrix_path),
+            num_classes=p.training.num_classes,
+            batch_size=p.training.batch_size,
+            num_workers=p.training.num_workers,
+        )
+
+    def get_model_pusher_config(self) -> ModelPusherConfig:
+        config = self.config.model_pusher
+        create_directories([config.root_dir])
+        return ModelPusherConfig(
+            root_dir=Path(config.root_dir),
+            trained_model_path=Path(self.config.training.trained_model_path),
+            model_bundle_path=Path(config.model_bundle_path),
+            dcr_path=Path(config.dcr_path),
+            metrics_path=Path(self.config.evaluation.metrics_path),
+            min_top1_accuracy=70.0,   # configurable quality gate threshold
+        )     

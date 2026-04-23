@@ -1,5 +1,6 @@
 from AI_Food_Recognition_Nutrition_Assistant import logger
 from AI_Food_Recognition_Nutrition_Assistant.config.configuration import DataPreprocessingConfig
+from AI_Food_Recognition_Nutrition_Assistant.utils.common import save_json
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, random_split
 import torch
@@ -69,6 +70,10 @@ class DataPreprocessing:
             },
             self.config.splits_dir
         )
+
+        # Save class names for later evaluation
+        save_json(self.config.class_names_path, {"class_names": list(base_dataset.classes)})
+        logger.info(f"Class names saved to {self.config.class_names_path}")
         # create separate datasets so each split can have its own transform
         train_dataset = datasets.ImageFolder(
             root=self.config.unzip_dir,
@@ -108,4 +113,4 @@ class DataPreprocessing:
             persistent_workers=True if self.config.num_workers > 0 else False,
         )
         logger.info(f"DataLoaders ready. Train: {train_size}, Validation: {val_size}, Test: {test_size}")
-        return train_loader,val_loader,test_loader
+        return base_dataset.classes,train_loader,val_loader,test_loader

@@ -13,6 +13,8 @@ import random
 import numpy as np
 import torch
 from pathlib import Path
+import tarfile
+import shutil
 
 
 @ensure_annotations
@@ -112,3 +114,39 @@ def precision_recall_f1(preds, labels, num_classes):
 
         # Macro average
         return precision.mean().item(), recall.mean().item(), f1.mean().item()
+
+def ensure_dir(path: Path) -> Path:
+    path = Path(path)
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+def save_numpy(arr: np.ndarray, path: Path) -> None:
+    path = Path(path)
+    ensure_dir(path.parent)
+    np.save(path, arr)
+    logger.info(f"NumPy array saved: {path}")
+
+def save_model(state_dict: dict, path: Path) -> None:
+    path = Path(path)
+    ensure_dir(path.parent)
+    torch.save(state_dict, path)
+    logger.info(f"Model saved: {path}")
+ 
+ 
+def load_model(path: Path, device: str = "cpu") -> dict:
+    return torch.load(path, map_location=device)
+ 
+ 
+def create_tar_bundle(source_dir: Path, output_path: Path) -> None:
+    """Pack a directory into a .tar.gz DCR bundle."""
+    output_path = Path(output_path)
+    ensure_dir(output_path.parent)
+    with tarfile.open(output_path, "w:gz") as tar:
+        tar.add(source_dir, arcname=Path(source_dir).name)
+    logger.info(f"DCR bundle created: {output_path}")
+
+def copy_file(src: Path, dst: Path) -> None:
+    dst = Path(dst)
+    ensure_dir(dst.parent)
+    shutil.copy2(src, dst)
+    logger.info(f"Copied {src} → {dst}")
