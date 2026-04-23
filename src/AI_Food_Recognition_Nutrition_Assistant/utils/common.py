@@ -16,7 +16,6 @@ from pathlib import Path
 import tarfile
 import shutil
 
-
 @ensure_annotations
 def read_yaml(path_to_yaml: Path)->ConfigBox:
     try:

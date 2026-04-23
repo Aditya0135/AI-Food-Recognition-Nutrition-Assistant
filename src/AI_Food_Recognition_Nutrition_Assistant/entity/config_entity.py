@@ -16,6 +16,7 @@ class DataPreprocessingConfig:
     train_dir: Path
     test_dir: Path
     splits_dir: Path
+    class_names_path: Path
     input_size: int
     resize_size: int
     randaugment_num_ops: int
@@ -71,3 +72,14 @@ class TrainingConfig:
     # ema
     use_ema: bool
     ema_decay: float
+
+@dataclass(frozen=True)
+class EvaluationConfig:
+    root_dir: Path
+    trained_model_path: Path
+    metrics_path: Path
+    report_path: Path
+    confusion_matrix_path: Path
+    num_classes: int
+    batch_size: int
+    num_workers: int

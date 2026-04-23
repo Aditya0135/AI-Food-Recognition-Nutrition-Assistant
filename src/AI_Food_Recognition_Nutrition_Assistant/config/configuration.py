@@ -112,15 +112,3 @@ class ConfigurationManager:
             batch_size=p.training.batch_size,
             num_workers=p.training.num_workers,
         )
-
-    def get_model_pusher_config(self) -> ModelPusherConfig:
-        config = self.config.model_pusher
-        create_directories([config.root_dir])
-        return ModelPusherConfig(
-            root_dir=Path(config.root_dir),
-            trained_model_path=Path(self.config.training.trained_model_path),
-            model_bundle_path=Path(config.model_bundle_path),
-            dcr_path=Path(config.dcr_path),
-            metrics_path=Path(self.config.evaluation.metrics_path),
-            min_top1_accuracy=70.0,   # configurable quality gate threshold
-        )     
