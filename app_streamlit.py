@@ -4,9 +4,7 @@ Modern, clean food classification app with nutrition & recipes
 """
 
 import streamlit as st
-import cv2
 from PIL import Image
-import torch
 from datetime import datetime
 import pandas as pd
 
