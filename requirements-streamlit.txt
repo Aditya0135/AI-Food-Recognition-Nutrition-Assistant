@@ -1,6 +1,5 @@
 streamlit
 Pillow
-opencv-python
 opencv-python-headless
 numpy
 python-box
