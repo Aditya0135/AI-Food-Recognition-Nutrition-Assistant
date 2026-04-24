@@ -363,7 +363,7 @@ with col_input:
         st.session_state.image = image
 
         # Predict button
-        if st.button("🔮 Analyze Food", use_container_width=True, key="predict_btn"):
+        if st.button("🔮 Analyze Food", width="stretch", key="predict_btn"):
             with st.spinner("🔍 Analyzing..."):
                 try:
                     image_tensor = preprocess_image_for_inference(image)
@@ -418,16 +418,16 @@ with col_output:
 
             # OTHER PREDICTIONS
             if len(predictions) > 1:
-                st.markdown("### 🔍 Other Predictions")
-                for pred in predictions[1:]:
-                    emoji = get_food_emoji(pred['class_name'])
-                    st.markdown(f"""
-                    <div class="prediction-item">
-                        <span class="rank-badge">{pred['rank']}</span>
-                        <span style="font-weight: 600; font-size: 1.1rem;">{emoji} {pred['class_name'].replace('_', ' ').title()}</span>
-                        <div style="text-align: right; color: #FF8C00; font-weight: 700; margin-top: 0.5rem;">{pred['confidence']:.1f}%</div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                with st.expander("🔍 Other Predictions"):
+                    for pred in predictions[1:]:
+                        emoji = get_food_emoji(pred['class_name'])
+                        st.markdown(f"""
+                        <div class="prediction-item">
+                            <span class="rank-badge">{pred['rank']}</span>
+                            <span style="font-weight: 600; font-size: 1.1rem;">{emoji} {pred['class_name'].replace('_', ' ').title()}</span>
+                            <div style="text-align: right; color: #FF8C00; font-weight: 700; margin-top: 0.5rem;">{pred['confidence']:.1f}%</div>
+                        </div>
+                        """, unsafe_allow_html=True)
 
     else:
         st.markdown("""
@@ -459,16 +459,43 @@ if st.session_state.predictions:
         if nutrition:
             st.markdown("### 📊 Nutrition Information (per 100g)")
 
-            # Create DataFrame for better table display
-            nutrition_df = pd.DataFrame([
-                {"Nutrient": "🔥 Calories", "Value": f"{nutrition.get('calories', 0):.1f}", "Unit": "kcal"},
-                {"Nutrient": "💪 Protein", "Value": f"{nutrition.get('protein', 0):.1f}", "Unit": "g"},
-                {"Nutrient": "🌾 Carbs", "Value": f"{nutrition.get('carbs', 0):.1f}", "Unit": "g"},
-                {"Nutrient": "🧈 Fat", "Value": f"{nutrition.get('fat', 0):.1f}", "Unit": "g"},
-                {"Nutrient": "🌿 Fiber", "Value": f"{nutrition.get('fiber', 0):.1f}", "Unit": "g"},
-            ])
+            def _format_nutrient(nutrition_data, key, fallback_unit):
+                value = nutrition_data.get(key)
+                if isinstance(value, dict):
+                    amount = value.get("amount", 0)
+                    unit = value.get("unit") or fallback_unit
+                    return amount, unit
+                if isinstance(value, (int, float)):
+                    return value, fallback_unit
+                if isinstance(value, str):
+                    return value, ""
+                return 0, fallback_unit
 
-            st.dataframe(nutrition_df, use_container_width=True, column_config={})
+            nutrition_rows = []
+            nutrient_config = [
+                ("Calories", "calories", "🔥", "kcal"),
+                ("Protein", "protein", "💪", "g"),
+                ("Carbs", "carbs", "🌾", "g"),
+                ("Fat", "fat", "🧈", "g"),
+                ("Fiber", "fiber", "🌿", "g"),
+                ("Sugar", "sugar", "🍬", "g"),
+            ]
+            for label, key, emoji, unit in nutrient_config:
+                amount, unit_out = _format_nutrient(nutrition, key, unit)
+                if isinstance(amount, (int, float)):
+                    value_display = f"{amount:.1f}"
+                else:
+                    value_display = str(amount)
+                nutrition_rows.append({
+                    "Nutrient": f"{emoji} {label}",
+                    "Value": value_display,
+                    "Unit": unit_out
+                })
+
+            # Create DataFrame for better table display
+            nutrition_df = pd.DataFrame(nutrition_rows)
+
+            st.dataframe(nutrition_df, width="stretch", column_config={})
 
         # RECIPE
         recipe = food_data.get("recipe")
@@ -494,6 +521,8 @@ if st.session_state.predictions:
                         unit = ing.get('unit', '')
                         name = ing.get('name', '')
                         st.markdown(f"<div class='ingredient-item'>{amount} {unit} {name}</div>", unsafe_allow_html=True)
+                    elif isinstance(ing, str):
+                        st.markdown(f"<div class='ingredient-item'>{ing}</div>", unsafe_allow_html=True)
 
             # Instructions
             st.markdown("#### 📝 Instructions")
