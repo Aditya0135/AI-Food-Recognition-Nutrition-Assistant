@@ -89,7 +89,7 @@ class ModelTrainer:
             div_factor=config.div_factor,
             final_div_factor=config.final_div_factor,
         )
-        self.scaler = torch.amp.GradScaler(device="cuda")# type: ignore
+        self.scaler = torch.amp.GradScaler(device=self.device)# type: ignore
         self.ema = ModelEMA(self.model, config.ema_decay, self.device) if config.use_ema else None
 
     # ── augmentation dispatch ─────────────────────────────────────────────────
@@ -119,7 +119,7 @@ class ModelTrainer:
              imgs, labels = imgs.to(self.device), labels.to(self.device)
              imgs, ya, yb, lam, aug = self._apply_aug(imgs, labels)
              self.optimizer.zero_grad()
-             with torch.amp.autocast(device_type="cuda", dtype=torch.float16):# type: ignore
+             with torch.amp.autocast(device_type=self.device, dtype=torch.float16):# type: ignore
                  out = self.model(imgs)
                  loss = mixed_loss(self.criterion, out, ya, yb, lam) if aug else self.criterion(out, labels)
              self.scaler.scale(loss).backward()
@@ -130,22 +130,6 @@ class ModelTrainer:
                  self.ema.update(self.model)
              total_loss += loss.item()
         return total_loss / len(self.train_loader)
-
-        # for imgs, labels in self.train_loader:
-        #     imgs, labels = imgs.to(self.device), labels.to(self.device)
-        #     imgs, ya, yb, lam, aug = self._apply_aug(imgs, labels)
-        #     self.optimizer.zero_grad()
-        #     with torch.amp.autocast(device_type="cuda", dtype=torch.float16):
-        #         out = self.model(imgs)
-        #         loss = mixed_loss(self.criterion, out, ya, yb, lam) if aug else self.criterion(out, labels)
-        #     self.scaler.scale(loss).backward()
-        #     self.scaler.step(self.optimizer)
-        #     self.scaler.update()
-        #     self.scheduler.step()
-        #     if self.ema:
-        #         self.ema.update(self.model)
-        #     total_loss += loss.item()
-        # return total_loss / len(self.train_loader)
 
     def _validate(self):
         eval_model = self.ema.ema if (self.ema and self.config.use_ema) else self.model
@@ -158,7 +142,7 @@ class ModelTrainer:
             for imgs, labels in self.val_loader:
                 imgs, labels = imgs.to(self.device), labels.to(self.device)
 
-                with torch.amp.autocast(device_type="cuda", dtype=torch.float16):# type: ignore
+                with torch.amp.autocast(device_type=self.device, dtype=torch.float16):# type: ignore
                     out = eval_model(imgs)
                     loss = self.criterion(out, labels)
 

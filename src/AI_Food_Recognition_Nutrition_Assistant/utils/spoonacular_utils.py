@@ -32,7 +32,7 @@ def search_recipe_and_nutrition(food_name: str):
             "query": food_name,
             "number": 1,
             "ranking": "popularity",
-            "apiKey": "a03c1ff555034e0aaf14a34ba5d93d92",
+            "apiKey": get_api_key(),
             "addRecipeNutrition": True,
         }
 
@@ -79,7 +79,7 @@ def get_full_recipe_info(recipe_id: int) -> Optional[Dict]:
         ID = recipe_id
         url = f"{API_BASE_URL}/recipes/{ID}/information"
         params = {
-            "apiKey": "a03c1ff555034e0aaf14a34ba5d93d92",
+            "apiKey": get_api_key(),
         }
         response = requests.get(url, params=params, timeout=5)
         response.raise_for_status()

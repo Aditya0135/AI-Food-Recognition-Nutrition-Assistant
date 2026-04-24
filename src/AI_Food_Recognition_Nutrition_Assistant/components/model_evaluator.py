@@ -37,7 +37,7 @@ class ModelEvaluator:
         with torch.no_grad():
             for imgs, labels in self.test_loader:
                 imgs, labels = imgs.to(self.device), labels.to(self.device)
-                with torch.amp.autocast(device_type="cuda", dtype=torch.float16):# type: ignore
+                 with torch.amp.autocast(device_type=self.device, dtype=torch.float16):# type: ignore
                     out = self.model(imgs)
                     loss = criterion(out, labels)
                 total_loss += loss.item()
