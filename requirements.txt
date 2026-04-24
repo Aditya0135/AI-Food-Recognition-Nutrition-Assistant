@@ -7,7 +7,6 @@ matplotlib
 scipy
 opencv-python
 scikit-learn
-matplotlib
 dvc
 seaborn
 pyYAML

@@ -15,7 +15,7 @@ class DataIngestionPipeline:
         data_ingestion.download_file()
         data_ingestion.extract_zipfile()
 
-if __name__ == "main":
+if __name__ == "__main__":
     try:
         logger.info(f">>>> stage {STAGE_NAME} started <<<<")
         obj = DataIngestionPipeline()

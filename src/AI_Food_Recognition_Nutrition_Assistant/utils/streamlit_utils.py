@@ -35,7 +35,7 @@ def load_trained_model_and_config():
     # Build model architecture
     model = models.convnext_tiny(weights=None)
     model.classifier[2] = torch.nn.Linear(
-        model.classifier[2].in_features, 101
+        model.classifier[2].in_features, model_config.num_classes
     )  # type: ignore
 
     # Load trained weights

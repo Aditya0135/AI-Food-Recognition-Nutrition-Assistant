@@ -115,7 +115,7 @@ def evaluate_model():
     logger.info("EVALUATION COMPLETE")
     logger.info(f"Top-1 Accuracy: {metrics['top1_accuracy']:.2f}%")
     logger.info(f"Top-5 Accuracy: {metrics['top5_accuracy']:.2f}%")
-    logger.info(f"Validation Loss: {metrics['val_loss']:.4f}")
+    logger.info(f"Validation Loss: {metrics['test_loss']:.4f}")
     logger.info(f"{'='*50}\n")
 
     return metrics

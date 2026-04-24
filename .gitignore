@@ -209,3 +209,6 @@ __marimo__/
 artifacts/*
 research/data
 research/checkpoints
+
+# API keys - never commit real credentials
+api_config.py
