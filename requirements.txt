@@ -5,7 +5,7 @@ ipykernel
 pandas
 matplotlib
 scipy
-opencv-python
+opencv-python-headless
 scikit-learn
 matplotlib
 dvc
@@ -18,5 +18,7 @@ types-PyYAML
 python-box
 Flask
 Flask-Cors
+torch
+torchvision
 -e .
 # --pre torch torchvision --index-url https://download.pytorch.org/whl/nightly/cu128
