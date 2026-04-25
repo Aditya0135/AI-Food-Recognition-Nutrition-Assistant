@@ -9,4 +9,4 @@ RUN pip install -r requirements.txt
 ENV PYTHONPATH=/app/src
 
 EXPOSE 8080
-CMD ["python3", "app.py"]
+CMD ["streamlit", "run", "app_streamlit.py", "--server.port=8080", "--server.address=0.0.0.0"]

@@ -1,6 +1,14 @@
 import requests
 import streamlit as st
 from typing import Optional, Dict, List
+import os
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    # dotenv is optional in deployment environments.
+    pass
 
 try:
     from api_config import SPOONACULAR_API_KEY
@@ -11,15 +19,24 @@ API_BASE_URL = "https://api.spoonacular.com"
 
 
 def get_api_key():
-    """Get API key from config or Streamlit secrets."""
-    if SPOONACULAR_API_KEY and SPOONACULAR_API_KEY != "YOUR_API_KEY_HERE":
-        return SPOONACULAR_API_KEY
+    """Get API key from environment, Streamlit secrets, or legacy config."""
+    env_key = os.getenv("SPOONACULAR_API_KEY")
+    if env_key and env_key != "YOUR_API_KEY_HERE":
+        return env_key
 
     # Try to get from Streamlit secrets
     try:
-        return st.secrets.get("SPOONACULAR_API_KEY")
-    except:
-        return None
+        secret_key = st.secrets.get("SPOONACULAR_API_KEY")
+        if secret_key and secret_key != "YOUR_API_KEY_HERE":
+            return secret_key
+    except Exception:
+        pass
+
+    # Backward-compatible fallback
+    if SPOONACULAR_API_KEY and SPOONACULAR_API_KEY != "YOUR_API_KEY_HERE":
+        return SPOONACULAR_API_KEY
+
+    return None
 
 
 def search_recipe_and_nutrition(food_name: str):

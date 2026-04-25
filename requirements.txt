@@ -20,5 +20,7 @@ Flask
 Flask-Cors
 torch
 torchvision
+huggingface_hub
+python-dotenv
 -e .
 # --pre torch torchvision --index-url https://download.pytorch.org/whl/nightly/cu128

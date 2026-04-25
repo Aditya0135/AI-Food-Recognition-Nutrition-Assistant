@@ -37,7 +37,7 @@ class ModelEvaluator:
         with torch.no_grad():
             for imgs, labels in self.test_loader:
                 imgs, labels = imgs.to(self.device), labels.to(self.device)
-                 with torch.amp.autocast(device_type=self.device, dtype=torch.float16):# type: ignore
+                with torch.amp.autocast(device_type=self.device, dtype=torch.float16):# type: ignore
                     out = self.model(imgs)
                     loss = criterion(out, labels)
                 total_loss += loss.item()
@@ -58,7 +58,7 @@ class ModelEvaluator:
             "val_loss": round(avg_loss, 6),
             "num_samples": n,
         }
-        logger.info(f"Evaluation → Top-1: {top1:.2f}% | Top-5: {top5:.2f}% | Loss: {avg_loss:.4f}")
+        logger.info(f"Evaluation -> Top-1: {top1:.2f}% | Top-5: {top5:.2f}% | Loss: {avg_loss:.4f}")
 
         # Save metrics
         save_json(self.config.metrics_path, metrics)

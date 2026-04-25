@@ -313,8 +313,16 @@ if 'history' not in st.session_state:
 @st.cache_resource
 def load_model():
     """Load model once."""
-    with st.spinner("🔄 Loading AI model..."):
-        model, device, class_names, config = load_trained_model_and_config()
+    try:
+        with st.spinner("🔄 Loading AI model..."):
+            model, device, class_names, config = load_trained_model_and_config()
+    except Exception as e:
+        st.error(
+            "❌ Failed to load model. Verify local artifacts or Hugging Face settings "
+            "(HF_MODEL_REPO_ID, HF_MODEL_FILENAME, HF_CLASS_NAMES_FILENAME, HF_TOKEN)."
+        )
+        st.exception(e)
+        st.stop()
     return model, device, class_names, config
 
 

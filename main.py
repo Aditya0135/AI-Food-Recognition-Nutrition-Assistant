@@ -6,6 +6,7 @@ from AI_Food_Recognition_Nutrition_Assistant.pipeline.stage_02_data_preprocessin
 from AI_Food_Recognition_Nutrition_Assistant.pipeline.stage_03_prepare_base_model import PrepareBaseModelPipeline
 from AI_Food_Recognition_Nutrition_Assistant.pipeline.stage_04_train import TrainModelPipeline
 from AI_Food_Recognition_Nutrition_Assistant.pipeline.stage_05_evaluate_model import EvaluateModelPipeline as EvaluateModelPipeline
+from AI_Food_Recognition_Nutrition_Assistant.pipeline.stage_06_push_model import PushModelPipeline
 from AI_Food_Recognition_Nutrition_Assistant.config.configuration import ConfigurationManager
 
 def main():
@@ -64,6 +65,17 @@ def main():
 
         evaluate_model = EvaluateModelPipeline()
         matrices = evaluate_model.main(model=model, test_loader=test_loader, class_names=class_names)
+        logger.info(f">>>> stage {stage_name} completed <<<< \n\nx============x")
+    except Exception as e:
+        logger.exception(e)
+        raise e
+
+    stage_name = "Push Model Stage"
+    try:
+        logger.info(f">>>> stage {stage_name} started <<<<")
+        push_model = PushModelPipeline()
+        repo_url = push_model.main()
+        logger.info(f"Model pushed to: {repo_url}")
         logger.info(f">>>> stage {stage_name} completed <<<< \n\nx============x")
     except Exception as e:
         logger.exception(e)

@@ -83,3 +83,15 @@ class EvaluationConfig:
     num_classes: int
     batch_size: int
     num_workers: int
+
+@dataclass(frozen=True)
+class ModelPusherConfig:
+    root_dir: Path
+    model_bundle_path: Path
+    model_path: Path
+    class_names_path: Path
+    hf_repo_id: str
+    hf_token: str | None
+    private_repo: bool
+    model_filename: str
+    class_names_filename: str

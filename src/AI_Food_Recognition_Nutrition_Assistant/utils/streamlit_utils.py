@@ -3,18 +3,95 @@ Streamlit utilities for single-image food classification inference.
 Handles model loading, image preprocessing, and prediction extraction.
 """
 
+import json
+import os
+from pathlib import Path
+from importlib import import_module
+
+import streamlit as st
 import torch
 import torch.nn.functional as F
 from torchvision import models, transforms
 from PIL import Image
-import numpy as np
-from pathlib import Path
 
 from AI_Food_Recognition_Nutrition_Assistant.config.configuration import ConfigurationManager
 from AI_Food_Recognition_Nutrition_Assistant.utils.common import (
-    load_model, load_json, get_device
+    get_device
 )
 from AI_Food_Recognition_Nutrition_Assistant import logger
+
+
+def _get_setting(key: str, default: str = "") -> str:
+    """Read setting from env first, then Streamlit secrets, then default."""
+    env_val = os.getenv(key)
+    if env_val is not None and str(env_val).strip() != "":
+        return str(env_val).strip()
+
+    try:
+        secret_val = st.secrets.get(key)
+        if secret_val is not None and str(secret_val).strip() != "":
+            return str(secret_val).strip()
+    except Exception:
+        pass
+
+    return default
+
+
+def _load_class_names(class_names_path: Path):
+    """Load class names from JSON supporting both list and dict payloads."""
+    with open(class_names_path, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+
+    if isinstance(payload, list):
+        class_names = payload
+    elif isinstance(payload, dict):
+        class_names = payload.get("class_names") or payload.get("classes")
+    else:
+        class_names = None
+
+    if not isinstance(class_names, list) or not class_names:
+        raise ValueError(
+            f"Invalid class names JSON in {class_names_path}. Expected list or {{'class_names': [...]}}"
+        )
+
+    return class_names
+
+
+def _resolve_model_and_class_paths(local_model_path: Path, local_class_names_path: Path):
+    """
+    Resolve model and class names paths.
+    If HF_MODEL_REPO_ID is set, download from Hugging Face Hub.
+    Otherwise, use local artifact paths.
+    """
+    repo_id = _get_setting("HF_MODEL_REPO_ID", "")
+    if not repo_id:
+        logger.info("HF_MODEL_REPO_ID not set. Using local artifacts for model + class names.")
+        return local_model_path, local_class_names_path
+
+    model_filename = _get_setting("HF_MODEL_FILENAME", "best_model.pth")
+    class_names_filename = _get_setting("HF_CLASS_NAMES_FILENAME", "class_names.json")
+    token = _get_setting("HF_TOKEN", "") or _get_setting("HUGGINGFACEHUB_API_TOKEN", "")
+    hf_hub_download = import_module("huggingface_hub").hf_hub_download
+
+    logger.info(f"Downloading model artifacts from Hugging Face repo: {repo_id}")
+    model_path = Path(
+        hf_hub_download(
+            repo_id=repo_id,
+            filename=model_filename,
+            token=token,
+        )
+    )
+    class_names_path = Path(
+        hf_hub_download(
+            repo_id=repo_id,
+            filename=class_names_filename,
+            token=token,
+        )
+    )
+
+    logger.info(f"Downloaded model file: {model_path}")
+    logger.info(f"Downloaded class names file: {class_names_path}")
+    return model_path, class_names_path
 
 
 def load_trained_model_and_config():
@@ -32,26 +109,36 @@ def load_trained_model_and_config():
     model_config = config.get_training_config()
     data_preprocessing_config = config.get_data_preprocessing_config()
 
+    local_model_path = model_config.checkpoint_dir / "best_model.pth"
+    local_class_names_path = data_preprocessing_config.class_names_path
+    model_path, class_names_path = _resolve_model_and_class_paths(
+        local_model_path=local_model_path,
+        local_class_names_path=local_class_names_path,
+    )
+
+    # Load class names first so the classifier head always matches the artifact.
+    class_names = _load_class_names(class_names_path)
+    num_classes = len(class_names)
+
     # Build model architecture
     model = models.convnext_tiny(weights=None)
+    classifier_head = model.classifier[2]
+    if not isinstance(classifier_head, torch.nn.Linear):
+        raise TypeError("Unexpected ConvNeXt classifier head type.")
+
     model.classifier[2] = torch.nn.Linear(
-        model.classifier[2].in_features, model_config.num_classes
-    )  # type: ignore
+        classifier_head.in_features,
+        num_classes,
+    )
 
     # Load trained weights
-    model_path = model_config.checkpoint_dir / "best_model.pth"
     state_dict = torch.load(model_path, map_location=device)
     model.load_state_dict(state_dict)
     model = model.to(device)
     model.eval()
 
     logger.info(f"✅ Loaded trained model from {model_path} on {device}")
-
-    # Load class names
-    class_names_data = load_json(data_preprocessing_config.class_names_path)
-    class_names = class_names_data["class_names"]
-
-    logger.info(f"✅ Loaded {len(class_names)} class names")
+    logger.info(f"✅ Loaded {len(class_names)} class names from {class_names_path}")
 
     return model, device, class_names, config
 

@@ -1,6 +1,7 @@
 from AI_Food_Recognition_Nutrition_Assistant.constants import *
 from AI_Food_Recognition_Nutrition_Assistant.utils.common import read_yaml,create_directories
 from AI_Food_Recognition_Nutrition_Assistant.entity.config_entity import *
+import os
 
 class ConfigurationManager:
     def __init__(self,
@@ -111,4 +112,20 @@ class ConfigurationManager:
             num_classes=p.training.num_classes,
             batch_size=p.training.batch_size,
             num_workers=p.training.num_workers,
+        )
+
+    def get_model_pusher_config(self) -> ModelPusherConfig:
+        config = self.config.model_pusher
+        create_directories([config.root_dir])
+        create_directories([config.model_bundle_path])
+        return ModelPusherConfig(
+            root_dir=Path(config.root_dir),
+            model_bundle_path=Path(config.model_bundle_path),
+            model_path=Path(self.config.training.checkpoint_dir) / "best_model.pth",
+            class_names_path=Path(self.config.data_preprocessing.class_names_path),
+            hf_repo_id=os.getenv("HF_MODEL_REPO_ID", "").strip(),
+            hf_token=os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACEHUB_API_TOKEN"),
+            private_repo=(os.getenv("HF_PRIVATE_REPO", "false").strip().lower() in {"1", "true", "yes", "on"}),
+            model_filename=os.getenv("HF_MODEL_FILENAME", "best_model.pth"),
+            class_names_filename=os.getenv("HF_CLASS_NAMES_FILENAME", "class_names.json"),
         )

@@ -15,6 +15,12 @@ import torch
 import tarfile
 import shutil
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass
+
 @ensure_annotations
 def read_yaml(path_to_yaml: Path)->ConfigBox:
     try:
